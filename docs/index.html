@@ -77,6 +77,17 @@
   .panel { font-size:15px; min-height:90px; }
   .panel p { margin:0 0 .6em; }
 
+  /* closer to home */
+  .home { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:900px) { .home { grid-template-columns:1fr; } }
+  .country { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:16px 18px; box-shadow:var(--shadow); border-left:6px solid var(--c); }
+  .country:nth-child(1) { --c:var(--amber); } .country:nth-child(2) { --c:var(--pink); } .country:nth-child(3) { --c:var(--blue); }
+  .country h3 { margin:0 0 10px; font-size:17px; display:flex; align-items:center; gap:8px; }
+  .country h3 .fl { font-size:24px; }
+  .country ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+  .country li { font-size:15px; line-height:1.45; padding-bottom:10px; border-bottom:1px dashed var(--line); }
+  .country li:last-child { border-bottom:0; padding-bottom:0; }
+
   /* tip */
   .tip { background:linear-gradient(135deg, var(--violet), var(--blue)); color:#fff; border-radius:24px; padding:22px 24px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
   .tip::after { content:"💡"; position:absolute; right:14px; top:-6px; font-size:90px; opacity:.18; }
@@ -157,7 +168,7 @@ $('#theme').onclick = () => {
 /* parse the weekly markdown into sections */
 function parse(md) {
   const lines = md.replace(/\r/g, '').split('\n');
-  const out = { title:'', glance:'', top:[], tip:'', radar:[], rest:'' };
+  const out = { title:'', glance:'', top:[], home:[], tip:'', radar:[], rest:'' };
   let sec = '', cur = null, buf = [];
   const flush = () => {
     const text = buf.join('\n').trim();
@@ -165,6 +176,7 @@ function parse(md) {
     else if (sec === 'tip') out.tip = text;
     else if (sec === 'radar') out.radar = text.split('\n').map(l => l.replace(/^\s*(\d+\.|[-*])\s+/, '').trim()).filter(Boolean);
     else if (sec === 'top' && cur) cur.body = text;
+    else if (sec === 'home' && cur) cur.items = text.split('\n').map(l => l.replace(/^\s*([-*]|\d+\.)\s+/, '').trim()).filter(Boolean);
     buf = [];
   };
   for (const line of lines) {
@@ -173,10 +185,11 @@ function parse(md) {
     if ((m = line.match(/^## (.+)/))) {
       flush(); cur = null;
       const h = m[1].toLowerCase();
-      sec = h.includes('glance') ? 'glance' : h.includes('top') ? 'top' : h.includes('tip') ? 'tip' : h.includes('radar') ? 'radar' : 'other';
+      sec = h.includes('glance') ? 'glance' : (h.includes('closer') || h.includes('home')) ? 'home' : h.includes('top') ? 'top' : h.includes('tip') ? 'tip' : h.includes('radar') ? 'radar' : 'other';
       continue;
     }
     if (sec === 'top' && (m = line.match(/^### (.+)/))) { flush(); cur = { title:m[1].replace(/^\d+\.\s*/, '').trim(), body:'' }; out.top.push(cur); continue; }
+    if (sec === 'home' && (m = line.match(/^### (.+)/))) { flush(); cur = { name:m[1].trim(), items:[] }; out.home.push(cur); continue; }
     buf.push(line);
   }
   flush();
@@ -232,8 +245,8 @@ function render(p, md) {
 
   const regions = [...new Set(p.radar.map(r => r.region))];
   $('#stats').innerHTML = [
-    [p.top.length || '–', 'top stories'], [p.radar.length, 'on the radar'],
-    [regions.length || '–', 'regions'], [nextMonday(), 'days to next briefing']
+    [p.top.length || '–', 'top stories'], [p.radar.length + p.home.reduce((n, c) => n + c.items.length, 0), 'items tracked'],
+    [regions.length + p.home.length || '–', 'regions'], [nextMonday(), 'days to next briefing']
   ].map(([n, l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
 
   const dash = $('#dash');
@@ -247,6 +260,14 @@ function render(p, md) {
       <div class="panel" id="panel-${i}">${t.parts.length ? block(t.parts[0][1]) : block(t.body)}</div></article>`;
   });
   h += `</div>`;
+  if (p.home.length) {
+    const flag = n => /nether/i.test(n) ? '🇳🇱' : /belg/i.test(n) ? '🇧🇪' : /kingdom|uk|brit/i.test(n) ? '🇬🇧' : '🌍';
+    h += `<h2 class="sec">Closer to home <span>Netherlands · Belgium · UK</span></h2><div class="home">`;
+    p.home.forEach(c => {
+      h += `<section class="country"><h3><span class="fl">${flag(c.name)}</span>${esc(c.name)}</h3><ul>${c.items.length ? c.items.map(i => `<li>${inline(i)}</li>`).join('') : '<li>No notable news this week.</li>'}</ul></section>`;
+    });
+    h += `</div>`;
+  }
   if (p.tip) h += `<h2 class="sec">Teaching tip <span>for the LessonUp team</span></h2><section class="tip" id="tip">${block(p.tip)}<button id="copy">Copy tip</button></section>`;
   if (p.radar.length) {
     h += `<h2 class="sec">Also on the radar <span id="count"></span></h2>
