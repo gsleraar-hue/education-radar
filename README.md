@@ -1,11 +1,11 @@
-# Onderwijsradar
+# Education Radar
 
-A weekly education news briefing, in English. Every Monday it scans global education news from the past 7 days and gives an analysis ("duiding") of the three most important items, plus a list of other items on the radar.
+A weekly education news briefing, in English. Every Monday it scans global education news from the past 7 days and gives an analysis of the three most important items, plus a list of other items on the radar.
 
 ## How it works
 
 - `prompt.md` is the full instruction set for the weekly run (a Claude scheduled task, `0 8 * * 1`, local time).
-- Each run saves its briefing as `onderwijsradar-<year>-W<week>.md` in this folder.
+- Each run saves its briefing as `education-radar-<year>-W<week>.md` in this folder.
 
 ## Briefing structure
 
