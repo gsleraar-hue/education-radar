@@ -4,73 +4,312 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Education Radar</title>
-<meta name="description" content="A weekly briefing on global education news: the three most important items explained, plus a teaching tip.">
+<meta name="description" content="A weekly education news dashboard: the three most important items explained, a teaching tip, and everything else on the radar.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23101a2e'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2341e3a0' stroke-width='2'/%3E%3Ccircle cx='21' cy='11' r='3' fill='%23ffb347'/%3E%3C/svg%3E">
 <style>
-  :root { --bg:#fafaf7; --fg:#1d2330; --muted:#5d6678; --accent:#1f6feb; --card:#fff; --line:#e3e5ea; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#12151c; --fg:#e8eaf0; --muted:#98a1b3; --accent:#6ea8ff; --card:#1a1f2a; --line:#2a3140; }
+  :root {
+    --bg:#f4f6fb; --card:#ffffff; --fg:#14213d; --muted:#5b6785; --line:#e1e6f0;
+    --mint:#12b886; --amber:#f59f00; --pink:#e64980; --blue:#4263eb; --violet:#7048e8;
+    --hero1:#14213d; --hero2:#2b3a8c; --shadow:0 6px 24px rgba(20,33,61,.08);
   }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.65 Georgia, "Times New Roman", serif; }
-  header { border-bottom:1px solid var(--line); background:var(--card); }
-  .wrap { max-width:1000px; margin:0 auto; padding:0 16px; }
-  header .wrap { padding-top:28px; padding-bottom:22px; }
-  h1.brand { margin:0; font:700 28px/1.2 system-ui, sans-serif; letter-spacing:-.01em; }
-  .tag { margin:4px 0 0; color:var(--muted); font:15px/1.4 system-ui, sans-serif; }
-  .layout { display:grid; grid-template-columns:1fr 220px; gap:40px; padding-top:32px; padding-bottom:64px; }
-  @media (max-width:760px) { .layout { grid-template-columns:1fr; gap:24px; } aside { order:-1; } }
-  article h1 { font:700 30px/1.25 system-ui, sans-serif; margin-top:0; }
-  article h2 { font:700 22px/1.3 system-ui, sans-serif; margin:2em 0 .5em; padding-top:.5em; border-top:1px solid var(--line); }
-  article h3 { font:700 18px/1.3 system-ui, sans-serif; margin:1.6em 0 .4em; }
-  article a { color:var(--accent); }
-  article blockquote { margin:1em 0; padding:.2em 1em; border-left:3px solid var(--line); color:var(--muted); }
-  article ul { padding-left:1.2em; }
-  aside h2 { font:600 13px/1 system-ui, sans-serif; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 12px; }
-  aside ul { list-style:none; margin:0; padding:0; font:15px/1.4 system-ui, sans-serif; }
-  aside li a { display:block; padding:8px 10px; border-radius:6px; color:var(--fg); text-decoration:none; }
-  aside li a:hover { background:var(--card); }
-  aside li a[aria-current="true"] { background:var(--card); border:1px solid var(--line); font-weight:600; }
-  footer { border-top:1px solid var(--line); color:var(--muted); font:14px/1.5 system-ui, sans-serif; padding:20px 0 40px; }
+  :root[data-theme="dark"] {
+    --bg:#0c1220; --card:#151d31; --fg:#eaf0ff; --muted:#93a0c2; --line:#25304c;
+    --mint:#41e3a0; --amber:#ffb347; --pink:#ff7aa8; --blue:#7c93ff; --violet:#a58bff;
+    --hero1:#0a1020; --hero2:#1d2a6b; --shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color:var(--blue); }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 16px; }
+
+  /* hero */
+  .hero { background:radial-gradient(1200px 400px at 85% -20%, var(--hero2), transparent 60%), var(--hero1); color:#fff; position:relative; overflow:hidden; }
+  .hero .wrap { display:grid; grid-template-columns:1fr 220px; gap:24px; align-items:center; padding-top:28px; padding-bottom:36px; }
+  @media (max-width:720px) { .hero .wrap { grid-template-columns:1fr; } .radar { order:-1; margin:0 auto; } }
+  .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; font-size:14px; }
+  .brand { font-weight:800; letter-spacing:.02em; display:flex; gap:8px; align-items:center; }
+  .brand i { width:10px; height:10px; border-radius:50%; background:#41e3a0; box-shadow:0 0 0 4px rgba(65,227,160,.25); animation:pulse 2s infinite; }
+  @keyframes pulse { 50% { box-shadow:0 0 0 9px rgba(65,227,160,0); } }
+  .iconbtn { background:rgba(255,255,255,.12); color:#fff; border:0; border-radius:999px; padding:6px 12px; cursor:pointer; font:inherit; }
+  .iconbtn:hover { background:rgba(255,255,255,.22); }
+  .hero h1 { margin:0 0 6px; font-size:clamp(28px,5vw,44px); line-height:1.1; letter-spacing:-.02em; }
+  .hero .sub { margin:0 0 16px; color:#c5d0f5; max-width:56ch; }
+  .glance { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:14px 16px; max-width:70ch; color:#eef2ff; }
+  .glance b { color:#41e3a0; text-transform:uppercase; font-size:12px; letter-spacing:.1em; display:block; margin-bottom:4px; }
+
+  .radar { width:200px; height:200px; position:relative; }
+  .radar svg { width:100%; height:100%; }
+  .sweep { transform-origin:100px 100px; animation:spin 5s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .blip { animation:blink 5s infinite; }
+  @keyframes blink { 0%,100% { opacity:.25; } 10% { opacity:1; } }
+  @media (prefers-reduced-motion:reduce) { .sweep,.blip,.brand i { animation:none; } }
+
+  /* stats + weeks */
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:-22px; position:relative; }
+  @media (max-width:720px) { .stats { grid-template-columns:repeat(2,1fr); } }
+  .stat { background:var(--card); border-radius:16px; padding:14px 16px; box-shadow:var(--shadow); border:1px solid var(--line); }
+  .stat .n { font-size:30px; font-weight:800; line-height:1.1; }
+  .stat .l { color:var(--muted); font-size:13px; }
+  .stat:nth-child(1) .n { color:var(--blue); } .stat:nth-child(2) .n { color:var(--mint); }
+  .stat:nth-child(3) .n { color:var(--pink); } .stat:nth-child(4) .n { color:var(--amber); }
+  .weeks { display:flex; gap:8px; overflow-x:auto; padding:18px 0 4px; scrollbar-width:thin; }
+  .weeks button { white-space:nowrap; border:1px solid var(--line); background:var(--card); color:var(--fg); padding:6px 14px; border-radius:999px; cursor:pointer; font:inherit; font-size:14px; }
+  .weeks button[aria-current="true"] { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+  h2.sec { font-size:20px; margin:34px 0 14px; display:flex; align-items:center; gap:10px; }
+  h2.sec span { font-size:12px; font-weight:600; color:var(--muted); background:var(--card); border:1px solid var(--line); padding:2px 10px; border-radius:999px; }
+
+  /* top 3 */
+  .top3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start; }
+  @media (max-width:900px) { .top3 { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px; box-shadow:var(--shadow); border-top:5px solid var(--c); transition:transform .2s; }
+  .card:hover { transform:translateY(-3px); }
+  .card:nth-child(1) { --c:var(--pink); } .card:nth-child(2) { --c:var(--amber); } .card:nth-child(3) { --c:var(--mint); }
+  .rank { display:inline-grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--c); color:#fff; font-weight:800; }
+  .card h3 { margin:10px 0 8px; font-size:18px; line-height:1.3; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .tag { font-size:12px; padding:2px 10px; border-radius:999px; background:color-mix(in srgb, var(--c) 16%, transparent); color:var(--fg); border:1px solid color-mix(in srgb, var(--c) 40%, transparent); }
+  .tabs { display:flex; flex-wrap:wrap; gap:4px; margin:6px 0 10px; }
+  .tabs button { border:0; background:var(--bg); color:var(--muted); border-radius:8px; padding:4px 10px; cursor:pointer; font:inherit; font-size:13px; }
+  .tabs button[aria-selected="true"] { background:var(--c); color:#fff; }
+  .panel { font-size:15px; min-height:90px; }
+  .panel p { margin:0 0 .6em; }
+
+  /* tip */
+  .tip { background:linear-gradient(135deg, var(--violet), var(--blue)); color:#fff; border-radius:24px; padding:22px 24px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .tip::after { content:"💡"; position:absolute; right:14px; top:-6px; font-size:90px; opacity:.18; }
+  .tip h2 { margin:0 0 8px; font-size:18px; }
+  .tip p { margin:0 0 .6em; max-width:80ch; }
+  .tip a { color:#fff; }
+  .tip button { background:#fff; color:var(--violet); border:0; border-radius:999px; padding:7px 16px; font-weight:700; cursor:pointer; font:inherit; font-weight:700; }
+
+  /* radar list */
+  .tools { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .tools input { flex:1 1 200px; border:1px solid var(--line); background:var(--card); color:var(--fg); padding:9px 14px; border-radius:999px; font:inherit; }
+  .chip { border:1px solid var(--line); background:var(--card); color:var(--fg); padding:6px 12px; border-radius:999px; cursor:pointer; font:inherit; font-size:13px; }
+  .chip[aria-pressed="true"] { background:var(--mint); color:#04251a; border-color:var(--mint); font-weight:700; }
+  .list { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media (max-width:760px) { .list { grid-template-columns:1fr; } }
+  .item { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; display:flex; gap:10px; align-items:flex-start; }
+  .item.bg { opacity:.72; border-style:dashed; }
+  .item .dot { flex:none; width:10px; height:10px; border-radius:50%; margin-top:8px; background:var(--mint); }
+  .item.bg .dot { background:var(--muted); }
+  .item .t { font-size:15px; line-height:1.4; }
+  .item .m { font-size:12px; color:var(--muted); margin-top:4px; }
+  .empty { color:var(--muted); padding:20px; text-align:center; }
+
+  .fallback { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px; margin-top:24px; }
+  footer { color:var(--muted); font-size:14px; padding:40px 0 48px; }
   footer a { color:var(--muted); }
 </style>
 </head>
 <body>
-<header><div class="wrap">
-  <h1 class="brand">Education Radar</h1>
-  <p class="tag">Global education news, every Monday. The three items that matter, explained.</p>
-</div></header>
-<main class="wrap layout">
-  <article id="content" aria-live="polite">Loading…</article>
-  <aside><h2>Archive</h2><ul id="archive"></ul></aside>
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="topbar">
+        <div class="brand"><i></i> EDUCATION RADAR</div>
+        <button class="iconbtn" id="theme" aria-label="Toggle dark mode">◐ Theme</button>
+      </div>
+      <h1 id="title">Education Radar</h1>
+      <p class="sub" id="sub">Global education news, every Monday. Three things that matter, explained.</p>
+      <div class="glance" id="glance" hidden></div>
+    </div>
+    <div class="radar" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#41e3a0" stop-opacity=".0"/><stop offset="1" stop-color="#41e3a0" stop-opacity=".55"/></radialGradient></defs>
+        <g fill="none" stroke="#41e3a0" stroke-opacity=".35"><circle cx="100" cy="100" r="95"/><circle cx="100" cy="100" r="64"/><circle cx="100" cy="100" r="32"/><path d="M100 5v190M5 100h190"/></g>
+        <path class="sweep" d="M100 100 L100 5 A95 95 0 0 1 167 33 Z" fill="url(#g)"/>
+        <g id="blips"></g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="stats" id="stats"></div>
+  <nav class="weeks" id="weeks" aria-label="Weeks"></nav>
+  <div id="dash"><p class="empty">Loading…</p></div>
 </main>
 <footer><div class="wrap">Generated weekly with Claude. Verify important facts against the linked sources. <a href="https://github.com/gsleraar-hue/education-radar">Source on GitHub</a></div></footer>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script>
+const $ = s => document.querySelector(s);
+const clean = html => DOMPurify.sanitize(html, { ADD_ATTR:['target','rel'] });
+const inline = t => clean(marked.parseInline(t));
+const block = t => clean(marked.parse(t));
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const links = root => root.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
+
+/* theme */
+const root = document.documentElement;
+try { root.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+catch { root.dataset.theme = 'light'; }
+$('#theme').onclick = () => {
+  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('theme', root.dataset.theme); } catch {}
+};
+
+/* parse the weekly markdown into sections */
+function parse(md) {
+  const lines = md.replace(/\r/g, '').split('\n');
+  const out = { title:'', glance:'', top:[], tip:'', radar:[], rest:'' };
+  let sec = '', cur = null, buf = [];
+  const flush = () => {
+    const text = buf.join('\n').trim();
+    if (sec === 'glance') out.glance = text;
+    else if (sec === 'tip') out.tip = text;
+    else if (sec === 'radar') out.radar = text.split('\n').map(l => l.replace(/^\s*(\d+\.|[-*])\s+/, '').trim()).filter(Boolean);
+    else if (sec === 'top' && cur) cur.body = text;
+    buf = [];
+  };
+  for (const line of lines) {
+    let m;
+    if ((m = line.match(/^# (.+)/))) { out.title = m[1].trim(); continue; }
+    if ((m = line.match(/^## (.+)/))) {
+      flush(); cur = null;
+      const h = m[1].toLowerCase();
+      sec = h.includes('glance') ? 'glance' : h.includes('top') ? 'top' : h.includes('tip') ? 'tip' : h.includes('radar') ? 'radar' : 'other';
+      continue;
+    }
+    if (sec === 'top' && (m = line.match(/^### (.+)/))) { flush(); cur = { title:m[1].replace(/^\d+\.\s*/, '').trim(), body:'' }; out.top.push(cur); continue; }
+    buf.push(line);
+  }
+  flush();
+  out.top.forEach(t => {
+    const m = t.title.match(/^(.*?)\s*\(([^()]+)\)\s*$/);
+    t.tags = m ? m[2].split(',').map(s => s.trim()).filter(Boolean) : [];
+    if (m) t.title = m[1];
+    const parts = {}; let key = null;
+    t.body.split('\n').forEach(l => {
+      const k = l.match(/^\*\*([^*]+?):?\*\*:?\s*(.*)$/);
+      if (k) { key = k[1].replace(/:$/, '').trim(); parts[key] = k[2]; }
+      else if (key) parts[key] += '\n' + l;
+    });
+    t.parts = Object.entries(parts).map(([k, v]) => [k, v.trim()]).filter(([, v]) => v);
+  });
+  out.radar = out.radar.map(raw => {
+    const bg = /^background/i.test(raw);
+    const cut = raw.lastIndexOf(' - ');
+    const [main, src] = cut > 0 ? [raw.slice(0, cut), raw.slice(cut + 3)] : [raw, ''];
+    const rm = main.match(/,\s*([^,]+)$/);
+    const ok = rm && rm[1].trim().length <= 24 && !/\d/.test(rm[1]);
+    return { raw, bg, text: ok ? main.slice(0, rm.index) : main, region: ok ? rm[1].trim() : 'Other', src };
+  });
+  return out;
+}
+
+/* radar blips in hero */
+function blips(n) {
+  const g = $('#blips'); g.innerHTML = '';
+  for (let i = 0; i < Math.min(n, 12); i++) {
+    const a = (i * 137.5) * Math.PI / 180, r = 22 + ((i * 53) % 68);
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', 100 + r * Math.cos(a)); c.setAttribute('cy', 100 + r * Math.sin(a));
+    c.setAttribute('r', i < 3 ? 4.5 : 2.8); c.setAttribute('fill', i < 3 ? '#ffb347' : '#41e3a0');
+    c.setAttribute('class', 'blip'); c.style.animationDelay = (a / (2 * Math.PI) * 5) + 's';
+    g.appendChild(c);
+  }
+}
+
+function nextMonday() {
+  const d = new Date(); d.setHours(8, 0, 0, 0);
+  do { d.setDate(d.getDate() + 1); } while (d.getDay() !== 1);
+  return Math.ceil((d - new Date()) / 864e5);
+}
+
+function render(p, md) {
+  const wk = (p.title.match(/week\s+\d+.*$/i) || [''])[0];
+  $('#title').textContent = 'Education Radar';
+  $('#sub').textContent = wk ? wk.charAt(0).toUpperCase() + wk.slice(1) + ' · three things that matter, explained.' : 'Global education news, every Monday. Three things that matter, explained.';
+  const gl = $('#glance');
+  if (p.glance) { gl.hidden = false; gl.innerHTML = '<b>Week in one glance</b>' + inline(p.glance.replace(/\n+/g, ' ')); links(gl); } else gl.hidden = true;
+  blips(p.radar.length + 3);
+
+  const regions = [...new Set(p.radar.map(r => r.region))];
+  $('#stats').innerHTML = [
+    [p.top.length || '–', 'top stories'], [p.radar.length, 'on the radar'],
+    [regions.length || '–', 'regions'], [nextMonday(), 'days to next briefing']
+  ].map(([n, l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  const dash = $('#dash');
+  if (!p.top.length && !p.radar.length) { dash.innerHTML = '<div class="fallback"></div>'; dash.firstChild.innerHTML = block(md); links(dash); return; }
+
+  let h = `<h2 class="sec">Top 3 <span>explained</span></h2><div class="top3">`;
+  p.top.forEach((t, i) => {
+    h += `<article class="card"><span class="rank">${i + 1}</span><h3>${inline(t.title)}</h3>
+      <div class="tags">${t.tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>
+      <div class="tabs" role="tablist">${t.parts.map(([k], j) => `<button role="tab" aria-selected="${j === 0}" data-i="${i}" data-j="${j}">${esc(k)}</button>`).join('')}</div>
+      <div class="panel" id="panel-${i}">${t.parts.length ? block(t.parts[0][1]) : block(t.body)}</div></article>`;
+  });
+  h += `</div>`;
+  if (p.tip) h += `<h2 class="sec">Teaching tip <span>for the LessonUp team</span></h2><section class="tip" id="tip">${block(p.tip)}<button id="copy">Copy tip</button></section>`;
+  if (p.radar.length) {
+    h += `<h2 class="sec">Also on the radar <span id="count"></span></h2>
+      <div class="tools"><input id="q" type="search" placeholder="Search the radar…" aria-label="Search">
+      <button class="chip" data-r="" aria-pressed="true">All</button>${regions.map(r => `<button class="chip" data-r="${esc(r)}" aria-pressed="false">${esc(r)}</button>`).join('')}</div>
+      <div class="list" id="list"></div>`;
+  }
+  dash.innerHTML = h; links(dash);
+
+  dash.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+    const t = p.top[b.dataset.i], panel = $('#panel-' + b.dataset.i);
+    b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', x === b));
+    panel.innerHTML = block(t.parts[b.dataset.j][1]); links(panel);
+  });
+  const copy = $('#copy');
+  if (copy) copy.onclick = async () => {
+    try { await navigator.clipboard.writeText($('#tip').innerText.replace('Copy tip', '').trim()); copy.textContent = 'Copied ✓'; }
+    catch { copy.textContent = 'Select & copy manually'; }
+    setTimeout(() => copy.textContent = 'Copy tip', 1800);
+  };
+
+  if (p.radar.length) {
+    let region = '';
+    const draw = () => {
+      const q = $('#q').value.trim().toLowerCase();
+      const rows = p.radar.filter(r => (!region || r.region === region) && (!q || r.raw.toLowerCase().includes(q)));
+      $('#count').textContent = rows.length + ' of ' + p.radar.length;
+      $('#list').innerHTML = rows.length ? rows.map(r =>
+        `<div class="item${r.bg ? ' bg' : ''}"><span class="dot"></span><div><div class="t">${inline(r.text)}</div>
+        <div class="m">${esc(r.region)}${r.src ? ' · ' + inline(r.src) : ''}${r.bg ? ' · background' : ''}</div></div></div>`).join('')
+        : '<p class="empty">Nothing matches that filter.</p>';
+      links($('#list'));
+    };
+    $('#q').oninput = draw;
+    dash.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+      region = c.dataset.r;
+      dash.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === c));
+      draw();
+    });
+    draw();
+  }
+}
+
 (async () => {
-  const content = document.getElementById('content');
-  const archive = document.getElementById('archive');
   try {
-    const reports = await (await fetch('reports.json', {cache:'no-cache'})).json();
-    const show = async (r) => {
-      const md = await (await fetch(r.file, {cache:'no-cache'})).text();
-      content.innerHTML = DOMPurify.sanitize(marked.parse(md));
-      content.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
+    const reports = await (await fetch('reports.json', { cache:'no-cache' })).json();
+    const nav = $('#weeks');
+    const show = async r => {
+      const md = await (await fetch(r.file, { cache:'no-cache' })).text();
+      render(parse(md), md);
+      nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', b.dataset.week === r.week));
       document.title = 'Education Radar - ' + r.week;
-      archive.querySelectorAll('a').forEach(a => a.setAttribute('aria-current', a.dataset.week === r.week));
       history.replaceState(null, '', '#' + r.week);
-      window.scrollTo(0, 0);
     };
     reports.forEach(r => {
-      const li = document.createElement('li'), a = document.createElement('a');
-      a.href = '#' + r.week; a.dataset.week = r.week; a.textContent = r.week.replace('-', ' ') + ' · ' + r.date;
-      a.onclick = e => { e.preventDefault(); show(r); };
-      li.appendChild(a); archive.appendChild(li);
+      const b = document.createElement('button');
+      b.dataset.week = r.week; b.textContent = r.week.replace('-', ' ') + ' · ' + r.date;
+      b.onclick = () => show(r); nav.appendChild(b);
     });
-    const wanted = reports.find(r => '#' + r.week === location.hash) || reports[0];
-    if (wanted) await show(wanted); else content.textContent = 'No briefings yet.';
+    const r = reports.find(x => '#' + x.week === location.hash) || reports[0];
+    if (r) await show(r); else $('#dash').innerHTML = '<p class="empty">No briefings yet.</p>';
   } catch (e) {
-    content.textContent = 'Could not load the briefings.';
+    $('#dash').innerHTML = '<p class="empty">Could not load the briefings.</p>';
   }
 })();
 </script>
