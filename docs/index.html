@@ -36,6 +36,7 @@
   .hero h1 { margin:0 0 6px; font-size:clamp(28px,5vw,44px); line-height:1.1; letter-spacing:-.02em; }
   .hero .sub { margin:0 0 16px; color:#c5d0f5; max-width:56ch; }
   .glance { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:14px 16px; max-width:70ch; color:#eef2ff; }
+  .upd { margin:10px 0 0; font-size:13px; color:#9fb0e8; }
   .glance b { color:#41e3a0; text-transform:uppercase; font-size:12px; letter-spacing:.1em; display:block; margin-bottom:4px; }
 
   .radar { width:200px; height:200px; position:relative; }
@@ -122,11 +123,12 @@
     <div>
       <div class="topbar">
         <div class="brand"><i></i> EDUCATION RADAR</div>
-        <button class="iconbtn" id="theme" aria-label="Toggle dark mode">◐ Theme</button>
+        <span><button class="iconbtn" id="refresh" aria-label="Refresh">↻ Refresh</button> <button class="iconbtn" id="theme" aria-label="Toggle dark mode">◐ Theme</button></span>
       </div>
       <h1 id="title">Education Radar</h1>
       <p class="sub" id="sub">Global education news, every Monday. Three things that matter, explained.</p>
       <div class="glance" id="glance" hidden></div>
+      <p class="upd" id="upd"></p>
     </div>
     <div class="radar" aria-hidden="true">
       <svg viewBox="0 0 200 200">
@@ -168,7 +170,7 @@ $('#theme').onclick = () => {
 /* parse the weekly markdown into sections */
 function parse(md) {
   const lines = md.replace(/\r/g, '').split('\n');
-  const out = { title:'', glance:'', top:[], home:[], tip:'', radar:[], rest:'' };
+  const out = { refreshed:'', title:'', glance:'', top:[], home:[], tip:'', radar:[], rest:'' };
   let sec = '', cur = null, buf = [];
   const flush = () => {
     const text = buf.join('\n').trim();
@@ -182,6 +184,7 @@ function parse(md) {
   for (const line of lines) {
     let m;
     if ((m = line.match(/^# (.+)/))) { out.title = m[1].trim(); continue; }
+    if ((m = line.match(/^\*?\s*Last refreshed:\s*(.+?)\*?\s*$/i))) { out.refreshed = m[1].trim(); continue; }
     if ((m = line.match(/^## (.+)/))) {
       flush(); cur = null;
       const h = m[1].toLowerCase();
@@ -242,6 +245,7 @@ function render(p, md) {
   const gl = $('#glance');
   if (p.glance) { gl.hidden = false; gl.innerHTML = '<b>Week in one glance</b>' + inline(p.glance.replace(/\n+/g, ' ')); links(gl); } else gl.hidden = true;
   blips(p.radar.length + 3);
+  $('#upd').textContent = p.refreshed ? 'Last refreshed: ' + p.refreshed : '';
 
   const regions = [...new Set(p.radar.map(r => r.region))];
   $('#stats').innerHTML = [
@@ -311,27 +315,36 @@ function render(p, md) {
   }
 }
 
+let reload = null;
+$('#refresh').onclick = async e => {
+  const b = e.currentTarget; b.textContent = '↻ …';
+  try { await reload(); b.textContent = '✓ Up to date'; } catch { b.textContent = 'Failed'; }
+  setTimeout(() => b.textContent = '↻ Refresh', 1800);
+};
 (async () => {
-  try {
-    const reports = await (await fetch('reports.json', { cache:'no-cache' })).json();
-    const nav = $('#weeks');
-    const show = async r => {
-      const md = await (await fetch(r.file, { cache:'no-cache' })).text();
-      render(parse(md), md);
-      nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', b.dataset.week === r.week));
-      document.title = 'Education Radar - ' + r.week;
-      history.replaceState(null, '', '#' + r.week);
-    };
+  const nav = $('#weeks');
+  let current = null;
+  const show = async r => {
+    current = r.week;
+    const md = await (await fetch(r.file + '?t=' + Date.now(), { cache:'no-store' })).text();
+    render(parse(md), md);
+    nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', b.dataset.week === r.week));
+    document.title = 'Education Radar - ' + r.week;
+    history.replaceState(null, '', '#' + r.week);
+  };
+  const load = async () => {
+    const reports = await (await fetch('reports.json?t=' + Date.now(), { cache:'no-store' })).json();
+    nav.innerHTML = '';
     reports.forEach(r => {
       const b = document.createElement('button');
       b.dataset.week = r.week; b.textContent = r.week.replace('-', ' ') + ' · ' + r.date;
       b.onclick = () => show(r); nav.appendChild(b);
     });
-    const r = reports.find(x => '#' + x.week === location.hash) || reports[0];
+    const r = reports.find(x => x.week === current) || reports.find(x => '#' + x.week === location.hash) || reports[0];
     if (r) await show(r); else $('#dash').innerHTML = '<p class="empty">No briefings yet.</p>';
-  } catch (e) {
-    $('#dash').innerHTML = '<p class="empty">Could not load the briefings.</p>';
-  }
+  };
+  reload = load;
+  try { await load(); } catch (e) { $('#dash').innerHTML = '<p class="empty">Could not load the briefings.</p>'; }
 })();
 </script>
 </body>
