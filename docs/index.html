@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Education Radar</title>
+<meta name="description" content="A weekly briefing on global education news: the three most important items explained, plus a teaching tip.">
+<style>
+  :root { --bg:#fafaf7; --fg:#1d2330; --muted:#5d6678; --accent:#1f6feb; --card:#fff; --line:#e3e5ea; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151c; --fg:#e8eaf0; --muted:#98a1b3; --accent:#6ea8ff; --card:#1a1f2a; --line:#2a3140; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.65 Georgia, "Times New Roman", serif; }
+  header { border-bottom:1px solid var(--line); background:var(--card); }
+  .wrap { max-width:1000px; margin:0 auto; padding:0 16px; }
+  header .wrap { padding-top:28px; padding-bottom:22px; }
+  h1.brand { margin:0; font:700 28px/1.2 system-ui, sans-serif; letter-spacing:-.01em; }
+  .tag { margin:4px 0 0; color:var(--muted); font:15px/1.4 system-ui, sans-serif; }
+  .layout { display:grid; grid-template-columns:1fr 220px; gap:40px; padding-top:32px; padding-bottom:64px; }
+  @media (max-width:760px) { .layout { grid-template-columns:1fr; gap:24px; } aside { order:-1; } }
+  article h1 { font:700 30px/1.25 system-ui, sans-serif; margin-top:0; }
+  article h2 { font:700 22px/1.3 system-ui, sans-serif; margin:2em 0 .5em; padding-top:.5em; border-top:1px solid var(--line); }
+  article h3 { font:700 18px/1.3 system-ui, sans-serif; margin:1.6em 0 .4em; }
+  article a { color:var(--accent); }
+  article blockquote { margin:1em 0; padding:.2em 1em; border-left:3px solid var(--line); color:var(--muted); }
+  article ul { padding-left:1.2em; }
+  aside h2 { font:600 13px/1 system-ui, sans-serif; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 12px; }
+  aside ul { list-style:none; margin:0; padding:0; font:15px/1.4 system-ui, sans-serif; }
+  aside li a { display:block; padding:8px 10px; border-radius:6px; color:var(--fg); text-decoration:none; }
+  aside li a:hover { background:var(--card); }
+  aside li a[aria-current="true"] { background:var(--card); border:1px solid var(--line); font-weight:600; }
+  footer { border-top:1px solid var(--line); color:var(--muted); font:14px/1.5 system-ui, sans-serif; padding:20px 0 40px; }
+  footer a { color:var(--muted); }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1 class="brand">Education Radar</h1>
+  <p class="tag">Global education news, every Monday. The three items that matter, explained.</p>
+</div></header>
+<main class="wrap layout">
+  <article id="content" aria-live="polite">Loading…</article>
+  <aside><h2>Archive</h2><ul id="archive"></ul></aside>
+</main>
+<footer><div class="wrap">Generated weekly with Claude. Verify important facts against the linked sources. <a href="https://github.com/gsleraar-hue/education-radar">Source on GitHub</a></div></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+(async () => {
+  const content = document.getElementById('content');
+  const archive = document.getElementById('archive');
+  try {
+    const reports = await (await fetch('reports.json', {cache:'no-cache'})).json();
+    const show = async (r) => {
+      const md = await (await fetch(r.file, {cache:'no-cache'})).text();
+      content.innerHTML = DOMPurify.sanitize(marked.parse(md));
+      content.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
+      document.title = 'Education Radar - ' + r.week;
+      archive.querySelectorAll('a').forEach(a => a.setAttribute('aria-current', a.dataset.week === r.week));
+      history.replaceState(null, '', '#' + r.week);
+      window.scrollTo(0, 0);
+    };
+    reports.forEach(r => {
+      const li = document.createElement('li'), a = document.createElement('a');
+      a.href = '#' + r.week; a.dataset.week = r.week; a.textContent = r.week.replace('-', ' ') + ' · ' + r.date;
+      a.onclick = e => { e.preventDefault(); show(r); };
+      li.appendChild(a); archive.appendChild(li);
+    });
+    const wanted = reports.find(r => '#' + r.week === location.hash) || reports[0];
+    if (wanted) await show(wanted); else content.textContent = 'No briefings yet.';
+  } catch (e) {
+    content.textContent = 'Could not load the briefings.';
+  }
+})();
+</script>
+</body>
+</html>

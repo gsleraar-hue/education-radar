@@ -5,7 +5,10 @@ A weekly education news briefing, in English. Every Monday it scans global educa
 ## How it works
 
 - `prompt.md` is the full instruction set for the weekly run (a Claude scheduled task, `0 8 * * 1`, local time).
-- Each run saves its briefing as `education-radar-<year>-W<week>.md` in this folder.
+- Each run saves its briefing as `docs/reports/<year>-W<week>.md`, updates `docs/reports.json`, then commits and pushes.
+- `docs/index.html` is the website (GitHub Pages, served from `docs/`): it shows the latest briefing and an archive.
+
+Site: https://gsleraar-hue.github.io/education-radar/
 
 ## Briefing structure
 
