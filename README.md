@@ -11,7 +11,8 @@ A weekly education news briefing, in English. Every Monday it scans global educa
 
 1. Week in one glance
 2. Top 3 with analysis: what happened, why it matters, context, what to watch
-3. Also on the radar (8-12 one-liners with sources)
+3. Education tip for the LessonUp team
+4. Also on the radar (8-12 one-liners with sources)
 
 ## Setup
 
