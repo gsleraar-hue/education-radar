@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Education Radar</title>
-<meta name="description" content="A weekly education news dashboard: the three most important items explained, a teaching tip, and everything else on the radar.">
+<meta name="description" content="A weekly education news dashboard: the three most important items explained, an insight for the LessonUp team, and everything else on the radar.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23101a2e'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2341e3a0' stroke-width='2'/%3E%3Ccircle cx='21' cy='11' r='3' fill='%23ffb347'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -185,7 +185,7 @@ function parse(md) {
     if ((m = line.match(/^## (.+)/))) {
       flush(); cur = null;
       const h = m[1].toLowerCase();
-      sec = h.includes('glance') ? 'glance' : (h.includes('closer') || h.includes('home')) ? 'home' : h.includes('top') ? 'top' : h.includes('tip') ? 'tip' : h.includes('radar') ? 'radar' : 'other';
+      sec = h.includes('glance') ? 'glance' : (h.includes('closer') || h.includes('home')) ? 'home' : h.includes('top') ? 'top' : (h.includes('tip') || h.includes('insight')) ? 'tip' : h.includes('radar') ? 'radar' : 'other';
       continue;
     }
     if (sec === 'top' && (m = line.match(/^### (.+)/))) { flush(); cur = { title:m[1].replace(/^\d+\.\s*/, '').trim(), body:'' }; out.top.push(cur); continue; }
@@ -268,7 +268,7 @@ function render(p, md) {
     });
     h += `</div>`;
   }
-  if (p.tip) h += `<h2 class="sec">Teaching tip <span>for the LessonUp team</span></h2><section class="tip" id="tip">${block(p.tip)}<button id="copy">Copy tip</button></section>`;
+  if (p.tip) h += `<h2 class="sec">Insight <span>for the LessonUp team</span></h2><section class="tip" id="tip">${block(p.tip)}<button id="copy">Copy insight</button></section>`;
   if (p.radar.length) {
     h += `<h2 class="sec">Also on the radar <span id="count"></span></h2>
       <div class="tools"><input id="q" type="search" placeholder="Search the radar…" aria-label="Search">
@@ -284,9 +284,9 @@ function render(p, md) {
   });
   const copy = $('#copy');
   if (copy) copy.onclick = async () => {
-    try { await navigator.clipboard.writeText($('#tip').innerText.replace('Copy tip', '').trim()); copy.textContent = 'Copied ✓'; }
+    try { await navigator.clipboard.writeText($('#tip').innerText.replace('Copy insight', '').trim()); copy.textContent = 'Copied ✓'; }
     catch { copy.textContent = 'Select & copy manually'; }
-    setTimeout(() => copy.textContent = 'Copy tip', 1800);
+    setTimeout(() => copy.textContent = 'Copy insight', 1800);
   };
 
   if (p.radar.length) {
